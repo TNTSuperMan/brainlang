@@ -1,0 +1,13 @@
+{
+  "name": "brainlang",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "acorn": "^8.16.0"
+  }
+}
