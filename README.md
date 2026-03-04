@@ -1,4 +1,5 @@
 # brainlang
+Brainfuckをターゲットとする高級言語を作る試み
 
 To install dependencies:
 
