@@ -1,31 +1,33 @@
+export type SSAID = `${string}#${number}`;
+
 export type SSAValue = {
     type: "const",
     value: number,
 } | {
     type: "add",
-    left: SSAValue,
-    right: SSAValue,
+    left: SSAID,
+    right: SSAID,
 } | {
     type: "sub",
-    left: SSAValue,
-    right: SSAValue,
+    left: SSAID,
+    right: SSAID,
 } | {
     type: "mul",
-    left: SSAValue,
-    right: SSAValue,
+    left: SSAID,
+    right: SSAID,
 } | {
     type: "div",
-    left: SSAValue,
-    right: SSAValue,
+    left: SSAID,
+    right: SSAID,
 } | {
     type: "fetch",
-    address: SSAValue,
+    address: SSAID,
     index: number,
 } | {
     type: "ref",
-    value: SSAValue,
+    value: SSAID,
 } | {
     type: "call",
     name: string,
-    args: SSAValue[],
+    args: SSAID[],
 };
