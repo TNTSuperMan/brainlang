@@ -63,9 +63,9 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                             type: "assign",
                             id,
                             value: {
-                                type: "add",
+                                type: "sub",
                                 left: { type: "id", id },
-                                right: { type: "const", value: -1 },
+                                right: { type: "const", value: 1 },
                             },
                         };
                         break;
