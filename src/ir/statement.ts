@@ -2,10 +2,17 @@ import type { ModuleDeclaration, Statement } from "acorn";
 import type { IRStatement } from "./types";
 import { ExpressionToIR } from "./expr";
 
-const wrap_stir = (statement: Statement): IRStatement => ({
+const unwrap_block = (statement: Statement): {
     type: "block",
-    body: [...StatementToIR(statement)],
-})
+    body: IRStatement[],
+} => {
+    const ir = [...StatementToIR(statement)];
+    if (ir.length === 1 && ir[0]!.type === "block") {
+        return ir[0]!;
+    } else {
+        throw new Error("No supported syntax detected");
+    }
+}
 
 export function* StatementToIR(statement: Statement | ModuleDeclaration): Generator<IRStatement> {
     switch (statement.type) {
@@ -64,15 +71,15 @@ Be careful.`);
             yield {
                 type: "while",
                 condition: ExpressionToIR(statement.test),
-                body: wrap_stir(statement.body),
+                body: unwrap_block(statement.body),
             };
             break;
         case "IfStatement":
             yield {
                 type: "if",
                 condition: ExpressionToIR(statement.test),
-                body: wrap_stir(statement.consequent),
-                else: statement.alternate ? wrap_stir(statement.alternate) : undefined,
+                body: unwrap_block(statement.consequent),
+                else: statement.alternate ? unwrap_block(statement.alternate) : undefined,
             };
             break;
         case "ForStatement":
@@ -83,19 +90,15 @@ Be careful.`);
                 block.push(...StatementToIR({ type: "ExpressionStatement", expression: statement.init, start: 0, end: 0 }));
             }
 
+            const body = unwrap_block(statement.body);
+            if (statement.update) {
+                body.body.push(...StatementToIR({ type: "ExpressionStatement", expression: statement.update, start: 0, end: 0 }));
+            }
+
             block.push({
                 type: "while",
                 condition: statement.test ? ExpressionToIR(statement.test) : { type: "const", value: 1 },
-                body: {
-                    type: "block",
-                    body: [
-                        ...StatementToIR(statement.body),
-                        ...(statement.update
-                            ? StatementToIR({ type: "ExpressionStatement", expression: statement.update, start: 0, end: 0 })
-                            : []
-                        ),
-                    ],
-                },
+                body,
             });
 
             yield {
