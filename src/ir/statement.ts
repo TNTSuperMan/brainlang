@@ -31,8 +31,12 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                         throw new Error("No supported syntax detected");
                 }
                 yield { type: "assign", id, value };
-            } else if (statement.expression.type === "CallExpression") {
-                throw new Error("unimplemented");
+            } else if (statement.expression.type === "CallExpression" && statement.expression.callee.type === "Identifier") {
+                yield {
+                    type: "call",
+                    name: statement.expression.callee.name,
+                    args: statement.expression.arguments.map(e => e.type !== "SpreadElement" ? ExpressionToIR(e) : (() => { throw new Error("No supported syntax detected") })()),
+                };
             } else {
                 throw new Error("No supported syntax detected");
             }
