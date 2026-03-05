@@ -24,6 +24,16 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier): IRExpr {
                 default:
                     throw new Error("No supported syntax detected");
             }
+        case "CallExpression":
+            if (expr.callee.type === "Identifier") {
+                return {
+                    type: "call",
+                    name: expr.callee.name,
+                    args: expr.arguments.map(e => e.type !== "SpreadElement" ? ExpressionToIR(e) : (() => { throw new Error("No supported syntax detected") })()),
+                };
+            } else {
+                throw new Error("No supported syntax detected");
+            }
         default:
             throw new Error("No supported syntax detected");
     }
