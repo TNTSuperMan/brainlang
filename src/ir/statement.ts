@@ -1,4 +1,4 @@
-import type { Statement } from "acorn";
+import type { ModuleDeclaration, Statement } from "acorn";
 import type { IRStatement } from "./types";
 import { ExpressionToIR } from "./expr";
 
@@ -7,7 +7,7 @@ const wrap_stir = (statement: Statement): IRStatement => ({
     body: [...StatementToIR(statement)],
 })
 
-export function* StatementToIR(statement: Statement): Generator<IRStatement> {
+export function* StatementToIR(statement: Statement | ModuleDeclaration): Generator<IRStatement> {
     switch (statement.type) {
         case "ExpressionStatement":
             if (statement.expression.type === "AssignmentExpression" && statement.expression.left.type === "Identifier") {
@@ -97,6 +97,12 @@ Be careful.`);
             yield {
                 type: "block",
                 body: block,
+            };
+            break;
+        case "BlockStatement":
+            yield {
+                type: "block",
+                body: statement.body.flatMap(s=>StatementToIR(s).toArray()),
             };
             break;
         case "EmptyStatement": break;
