@@ -4,19 +4,7 @@ export type SSAValue = {
     type: "const",
     value: number,
 } | {
-    type: "add",
-    left: SSAID,
-    right: SSAID,
-} | {
-    type: "sub",
-    left: SSAID,
-    right: SSAID,
-} | {
-    type: "mul",
-    left: SSAID,
-    right: SSAID,
-} | {
-    type: "div",
+    type: "add" | "sub" | "mul" | "div",
     left: SSAID,
     right: SSAID,
 } | {
