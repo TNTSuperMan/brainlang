@@ -44,6 +44,32 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                     name: statement.expression.callee.name,
                     args: statement.expression.arguments.map(e => e.type !== "SpreadElement" ? ExpressionToIR(e) : (() => { throw new Error("No supported syntax detected") })()),
                 };
+            } else if (statement.expression.type === "UpdateExpression" && statement.expression.argument.type === "Identifier" ) {
+                const id = statement.expression.argument.name;
+                switch (statement.expression.operator) {
+                    case "++":
+                        yield {
+                            type: "assign",
+                            id,
+                            value: {
+                                type: "add",
+                                left: { type: "id", id },
+                                right: { type: "const", value: 1 },
+                            },
+                        };
+                        break;
+                    case "--":
+                        yield {
+                            type: "assign",
+                            id,
+                            value: {
+                                type: "add",
+                                left: { type: "id", id },
+                                right: { type: "const", value: -1 },
+                            },
+                        };
+                        break;
+                }
             } else {
                 throw new Error("No supported syntax detected");
             }
