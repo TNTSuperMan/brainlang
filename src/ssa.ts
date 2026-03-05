@@ -1,4 +1,4 @@
-export type SSAID = `${string}#${number}`;
+export type SSAID = `${string}#${number}` | `${string}/branch#${number}`;
 
 export type SSAValue = {
     type: "const",
@@ -31,3 +31,23 @@ export type SSAValue = {
     name: string,
     args: SSAID[],
 };
+
+export type SSAStatement = {
+    type: "var",
+    id: SSAID,
+    value: SSAValue,
+} | {
+    type: "call",
+    name: string,
+    args: SSAID[],
+} | {
+    type: "while",
+    condition: SSAID,
+} | {
+    type: "if",
+    branches: {
+        condition: SSAValue,
+        code: SSAStatement[],
+    }[],
+    default?: SSAStatement[],
+}
