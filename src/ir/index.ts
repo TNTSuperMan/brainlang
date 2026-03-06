@@ -9,11 +9,11 @@ interface IRFunc {
     ret?: IRExpr;
 }
 
-export function codeToIR(code: string): {
+export function codeToIR(code: string, sourceFile: string = "[FILE]"): {
     main: IRStatement[];
     funcs: Map<string, IRFunc>;
  } {
-    const ast = parse(code, { ecmaVersion: "latest" });
+    const ast = parse(code, { ecmaVersion: "latest", sourceFile, locations: true });
     const main: IRStatement[] = [];
     const funcs = new Map<string, IRFunc>();
 

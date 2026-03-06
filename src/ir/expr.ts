@@ -1,7 +1,8 @@
-import type { Expression, PrivateIdentifier } from "acorn";
+import type { Expression, PrivateIdentifier, SpreadElement } from "acorn";
 import type { IRExpr } from "./types";
+import { at } from "./loc";
 
-export function ExpressionToIR(expr: Expression | PrivateIdentifier): IRExpr {
+export function ExpressionToIR(expr: Expression | PrivateIdentifier | SpreadElement): IRExpr {
     switch (expr.type) {
         case "Identifier":
             return { type: "id", id: expr.name };
@@ -9,7 +10,7 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier): IRExpr {
             if (typeof expr.value === "number") {
                 return { type: "const", value: expr.value };
             } else {
-                throw new Error("No supported syntax detected");
+                throw new Error(`Unsupported Literal: ${expr.value} ${at(expr)}`);
             }
         case "BinaryExpression":
             switch (expr.operator) {
@@ -22,19 +23,19 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier): IRExpr {
                 case "/":
                     return { type: "div", left: ExpressionToIR(expr.left), right: ExpressionToIR(expr.right) };
                 default:
-                    throw new Error("No supported syntax detected");
+                    throw new Error(`Unsupported Binary Operation: ${expr.operator} ${at(expr)}`);
             }
         case "CallExpression":
             if (expr.callee.type === "Identifier") {
                 return {
                     type: "call",
                     name: expr.callee.name,
-                    args: expr.arguments.map(e => e.type !== "SpreadElement" ? ExpressionToIR(e) : (() => { throw new Error("No supported syntax detected") })()),
+                    args: expr.arguments.map(ExpressionToIR),
                 };
             } else {
-                throw new Error("No supported syntax detected");
+                throw new Error(`Unsupported Calle: ${expr.callee.type} ${at(expr)}`);
             }
         default:
-            throw new Error("No supported syntax detected");
+            throw new Error(`Unsupported Expression: ${expr.type} ${at(expr)}`);
     }
 }

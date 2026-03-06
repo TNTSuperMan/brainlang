@@ -1,6 +1,7 @@
 import type { ModuleDeclaration, Statement } from "acorn";
 import type { IRStatement } from "./types";
 import { ExpressionToIR } from "./expr";
+import { at } from "./loc";
 
 const unwrap_block = (statement: Statement): {
     type: "block",
@@ -10,7 +11,7 @@ const unwrap_block = (statement: Statement): {
     if (ir.length === 1 && ir[0]!.type === "block") {
         return ir[0]!;
     } else {
-        throw new Error("No supported syntax detected");
+        throw new Error(`Unsupported Non-BlockStatement ${at(statement)}`);
     }
 }
 
@@ -35,14 +36,14 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                         value = { type: "div", left: { type: "id", id }, right: value };
                         break;
                     default:
-                        throw new Error("No supported syntax detected");
+                        throw new Error(`Unsupported Assignment: ${statement.expression.operator} ${at(statement.expression)}`);
                 }
                 yield { type: "assign", id, value };
             } else if (statement.expression.type === "CallExpression" && statement.expression.callee.type === "Identifier") {
                 yield {
                     type: "call",
                     name: statement.expression.callee.name,
-                    args: statement.expression.arguments.map(e => e.type !== "SpreadElement" ? ExpressionToIR(e) : (() => { throw new Error("No supported syntax detected") })()),
+                    args: statement.expression.arguments.map(ExpressionToIR),
                 };
             } else if (statement.expression.type === "UpdateExpression" && statement.expression.argument.type === "Identifier" ) {
                 const id = statement.expression.argument.name;
@@ -71,7 +72,8 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                         break;
                 }
             } else {
-                throw new Error("No supported syntax detected");
+                console.warn(`Warning: ExpressionStatement that is not a specific type, That will be ignored.
+    ${at(statement)}`);
             }
             break;
         case "VariableDeclaration":
@@ -79,9 +81,10 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                 if (decl.id.type === "Identifier") {
                     const id = decl.id.name;
                     if (!decl.init) {
-                        console.warn(`Undefined variable detected: ${id}.
+                        console.warn(`Warning: Undefined variable detected: ${id}.
 The initial value of that variable may be an unknown value.
-Be careful.`);
+Be careful.
+    ${at(decl)}`);
                     }
                     yield {
                         type: "vardef",
@@ -89,7 +92,7 @@ Be careful.`);
                         value: decl.init ? ExpressionToIR(decl.init) : undefined,
                     };
                 } else {
-                    throw new Error("No supported syntax detected");
+                    throw new Error(`Unsupported Variable Declaration: ${decl.id.type} ${at(decl.id)}`);
                 }
             }
             break;
@@ -140,6 +143,6 @@ Be careful.`);
             break;
         case "EmptyStatement": break;
         default:
-            throw new Error("No supported syntax detected");
+            throw new Error(`Unsupported Statement: ${statement.type} ${at(statement)}`);
     }
 }
