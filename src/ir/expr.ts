@@ -1,6 +1,6 @@
 import type { Expression, PrivateIdentifier, SpreadElement } from "acorn";
 import type { IRExpr } from "./types";
-import { at } from "./loc";
+import { ParseError } from "./error";
 
 export function ExpressionToIR(expr: Expression | PrivateIdentifier | SpreadElement): IRExpr {
     switch (expr.type) {
@@ -10,7 +10,7 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier | SpreadElem
             if (typeof expr.value === "number") {
                 return { type: "const", value: expr.value };
             } else {
-                throw new Error(`Unsupported Literal: ${expr.value} ${at(expr)}`);
+                throw new ParseError(`Unsupported Literal: ${expr.value}`, expr);
             }
         case "BinaryExpression":
             switch (expr.operator) {
@@ -23,7 +23,7 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier | SpreadElem
                 case "/":
                     return { type: "div", left: ExpressionToIR(expr.left), right: ExpressionToIR(expr.right) };
                 default:
-                    throw new Error(`Unsupported Binary Operation: ${expr.operator} ${at(expr)}`);
+                    throw new ParseError(`Unsupported Binary Operation: ${expr.operator}`, expr);
             }
         case "CallExpression":
             if (expr.callee.type === "Identifier") {
@@ -33,9 +33,9 @@ export function ExpressionToIR(expr: Expression | PrivateIdentifier | SpreadElem
                     args: expr.arguments.map(ExpressionToIR),
                 };
             } else {
-                throw new Error(`Unsupported Calle: ${expr.callee.type} ${at(expr)}`);
+                throw new ParseError(`Unsupported Calle: ${expr.callee.type}`, expr.callee);
             }
         default:
-            throw new Error(`Unsupported Expression: ${expr.type} ${at(expr)}`);
+            throw new ParseError(`Unsupported Expression: ${expr.type}`, expr);
     }
 }

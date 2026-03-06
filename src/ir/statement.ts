@@ -1,7 +1,7 @@
 import type { ModuleDeclaration, Statement } from "acorn";
 import type { IRStatement } from "./types";
 import { ExpressionToIR } from "./expr";
-import { at } from "./loc";
+import { at, ParseError } from "./error";
 
 const unwrap_block = (statement: Statement): {
     type: "block",
@@ -11,7 +11,7 @@ const unwrap_block = (statement: Statement): {
     if (ir.length === 1 && ir[0]!.type === "block") {
         return ir[0]!;
     } else {
-        throw new Error(`Unsupported Non-BlockStatement ${at(statement)}`);
+        throw new ParseError(`Unsupported Non-BlockStatement`, statement);
     }
 }
 
@@ -36,7 +36,7 @@ export function* StatementToIR(statement: Statement | ModuleDeclaration): Genera
                         value = { type: "div", left: { type: "id", id }, right: value };
                         break;
                     default:
-                        throw new Error(`Unsupported Assignment: ${statement.expression.operator} ${at(statement.expression)}`);
+                        throw new ParseError(`Unsupported Assignment: ${statement.expression.operator}`, statement.expression);
                 }
                 yield { type: "assign", id, value };
             } else if (statement.expression.type === "CallExpression" && statement.expression.callee.type === "Identifier") {
@@ -92,7 +92,7 @@ Be careful.
                         value: decl.init ? ExpressionToIR(decl.init) : undefined,
                     };
                 } else {
-                    throw new Error(`Unsupported Variable Declaration: ${decl.id.type} ${at(decl.id)}`);
+                    throw new ParseError(`Unsupported Variable Declaration: ${decl.id.type}`, decl.id);
                 }
             }
             break;
@@ -143,6 +143,6 @@ Be careful.
             break;
         case "EmptyStatement": break;
         default:
-            throw new Error(`Unsupported Statement: ${statement.type} ${at(statement)}`);
+            throw new ParseError(`Unsupported Statement: ${statement.type}`, statement);
     }
 }

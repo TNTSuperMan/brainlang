@@ -12,7 +12,7 @@ interface IRFunc {
 export function codeToIR(code: string, sourceFile: string = "[FILE]"): {
     main: IRStatement[];
     funcs: Map<string, IRFunc>;
- } {
+} {
     const ast = parse(code, { ecmaVersion: "latest", sourceFile, locations: true });
     const main: IRStatement[] = [];
     const funcs = new Map<string, IRFunc>();
